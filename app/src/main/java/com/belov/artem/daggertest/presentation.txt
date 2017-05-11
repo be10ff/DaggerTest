@@ -1,3 +1,13 @@
+1. collecting underpants
+2. ...
+3. PROFIT!
+
+
+1. write @Inject
+2. ...
+3. PROFIT!
+
+
 Dagger2 популярная поддерживаемая Google библиотека реализующая DJ
 Она использует кодогенерацию базирующуюся на аннотациях.
 
@@ -15,3 +25,195 @@ D2 использует следующие аннотации:
 
 @Scope
 @Singleton один экземпляр создается и расшаривается
+
+
+
+
+Основная концепция - ни один класс не должен создавать другой внутри себя, А должен получать извне.
+
+Разделение создания и использования. instance в _одном_ месте отличном от _многих_ мест их использования.
+Замена одной сущности другой - только в одном месте кода без разрушения всего
+
+/**/
+Here is the API of Dagger 2:
+public @interface Component {
+    Class<?>[] modules() default {};
+    Class<?>[] dependencies() default {};
+}
+
+public @interface Subcomponent {
+    Class<?>[] modules() default {};
+}
+
+public @interface Module {
+    Class<?>[] includes() default {};
+}
+
+public @interface Provides {
+}
+
+public @interface MapKey {
+    boolean unwrapValue() default true;
+}
+
+public interface Lazy<T> {
+    T get();
+}
+
+/**/
+
+public @interface Inject {
+}
+
+public @interface Scope {
+}
+
+public @interface Qualifier {
+}
+
+/**/
+//--------------------------------------------
+@Inject - наиболее интересная для нас. Так мы помечаем зависимости, которые нам должны предоставить.
+
+3-и типа:
+
+public class Constructor{
+
+1-     @Inject
+      public Constructor(ClassA a,
+                                    ClassB b,
+                                    ClassC c)
+    ...
+    }
+    Все параметры конструктора берутся из графа зависимостей. Сам класс Constructor также становится доступным в графе.
+
+НО нельзя аннотировать более чем один конструктор
+
+public class Constructor{
+
+2-     @Inject
+      Field field
+
+            @Override
+            protected void onCreate(Bundle bundle) {
+                super.onCreate(bundle);
+                //здесь и в этот момент запрос и внедрение приходится делать ручками
+                getAppComponent().inject(this);
+        }
+}
+НО нельзя аннотировать приватные члены.
+
+
+3-     @Inject
+       public void doSomething(Stuff stuff) {
+           stuff.do(this);    //Watches instance required fully constructed LoginActivityPresenter
+   }
+
+   применяется для передачи This. Внедрение происходит сразу после вызова конструктора.
+
+
+2. ...
+
+определяют классы и методы предоставляющие зависимости. Тут-то они и создаются
+//--------------------------------------------
+//--------------------------------------------
+@Module
+public class SomeModule {
+
+    @Provides
+    ClassA provideA() {
+        ClassA classA = new ClassA();
+        return classA;
+    }
+
+    @Provides
+    Stuff provideStuff(ClassA a, ClassB b, ClassC c) {
+        Stuff.Builder builder = new Stuff.Builder();
+        builder.setA(a)
+                .setB(b)
+                .setC(c);
+        return builder.build();
+}
+
+}
+
+//--------------------------------------------
+@Component - для создания интерфейса, связывающего все воедино. тут мы определяем который из графов будет создан,
+ из какиз модулей и компонентов мы будем получать зависимости и и где зависимости могут быть внедрены.
+
+ @Component( modules = {
+         SomeModule.class,
+         AnyModule.class,
+         dependencies = AnotherComponent.class
+     }
+ )
+public interface MyComponent {
+
+void inject(MyApplication app);
+
+ClassA getA();
+ClassB getB();
+ClassC getC();
+}
+
+//--------------------------------------------
+//--------------------------------------------
+@Scope для своих scope annotations- если коротко - работают очень близко похоже на Singleton. только создают привязанно не к application  а к жизненному циклу компонента
+
+//--------------------------------------------
+@MapKey определяют Map или List зависимостей
+определение:
+
+@MapKey(unwrapValue = true)
+@interface TestKey {
+    String value();
+}
+
+
+
+@Provides(type = Type.MAP)
+@TestKey("foo")
+String provideFooKey() {
+    return "foo value";
+}
+
+@Provides(type = Type.MAP)
+@TestKey("bar")
+String provideBarKey() {
+    return "bar value";
+}
+
+использование:
+
+@Inject
+Map<String, String> map;
+//--------------------------------------------
+
+@Qualifier позволяет нам присвоить тэги для зависимостей с одинаковым интерфейсом
+
+определение:
+
+    @Provides
+    @NamedStuff  //Qualifier
+    Stuff provideStuff(String name) {
+        Stuff.Builder builder = new Stuff.Builder();
+        builder.setName(name);
+        return builder.build();
+
+    @Provides
+    @DescribeddStuff  //Qualifier
+    Stuff provideStuff(String description) {
+        Stuff.Builder builder = new Stuff.Builder();
+        builder.setDescription(description);
+        return builder.build();
+}
+
+использование:
+
+@Inject
+@NamedStuff
+Stuff oneStuff;
+
+@Inject
+@DescribeddStuff
+Stuff secondStuff;
