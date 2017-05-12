@@ -1,8 +1,7 @@
 package com.belov.artem.daggertest.models;
 
-;
-import com.belov.artem.daggertest.components.DaggerDoomsDayComponent;
-import com.belov.artem.daggertest.components.DoomsDayComponent;
+import com.belov.artem.daggertest.components.ApocalypseComponent;
+import com.belov.artem.daggertest.components.DaggerApocalypseComponent;
 
 import javax.inject.Inject;
 
@@ -11,15 +10,16 @@ import javax.inject.Inject;
  */
 
 public class Apocalypse {
-    private DoomsDayComponent doomsDayComponent;
 
     @Inject
     public DoomsDayMashine doomsDayMashine;
+    @Inject
+    public TheBeastFromSea theBeastFromSea;
+    ApocalypseComponent apocalypseComponent;
 
     public Apocalypse(){
-//        this.doomsDayComponent.inject(this);
-        doomsDayComponent = DaggerDoomsDayComponent.builder().build();
-        this.doomsDayComponent.inject(this);
+        apocalypseComponent = DaggerApocalypseComponent.builder().build();
+        apocalypseComponent.inject(this);
 
     }
 

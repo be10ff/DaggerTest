@@ -1,7 +1,6 @@
 package com.belov.artem.daggertest.modules;
 
-import com.belov.artem.daggertest.models.Apocalypse;
-import com.belov.artem.daggertest.models.DoomsDayMashine;
+import com.belov.artem.daggertest.models.DoomsDayEngine;
 
 import dagger.Module;
 import dagger.Provides;
@@ -12,15 +11,11 @@ import dagger.Provides;
 
 @Module
 public class DoomsDayModule {
-    private Apocalypse apocalypse;
 
-    public DoomsDayModule(Apocalypse apocalypse){
-        this.apocalypse = apocalypse;
-    }
 
     @Provides
-    DoomsDayMashine provideDoomsDayMashine(){
-        return  new DoomsDayMashine();
+    DoomsDayEngine provideDoomsDayEngine() {
+        return new DoomsDayEngine();
     }
 
 }

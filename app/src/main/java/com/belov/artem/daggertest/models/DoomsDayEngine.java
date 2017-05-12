@@ -6,6 +6,10 @@ package com.belov.artem.daggertest.models;
 
 public class DoomsDayEngine {
 
-    public String name = "four horses";
+    public String engineType;
+
+    public DoomsDayEngine() {
+        engineType = "four horse riders";
+    }
 
 }
